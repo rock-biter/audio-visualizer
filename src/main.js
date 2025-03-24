@@ -32,19 +32,18 @@ pane
 const scene = new THREE.Scene()
 // scene.background = new THREE.Color(0xdedede)
 
-const precision = 512
+const precision = 256
 
 // __floor__
 /**
  * Plane
  */
 const groundMaterial = new THREE.ShaderMaterial({
-	// wireframe: true,
+	wireframe: true,
 	fragmentShader,
 	vertexShader,
-	// blending: THREE.AdditiveBlending,
 	uniforms: {
-		uFrequencies: { value: new Array(precision).fill(0) },
+		uFrequencies: { value: new Array(256).fill(0) },
 	},
 })
 const groundGeometry = new THREE.PlaneGeometry(500, 30, 2000, 1000)
@@ -74,6 +73,26 @@ camera.position.set(10, 35, 40)
 const axesHelper = new THREE.AxesHelper(3)
 // scene.add(axesHelper)
 
+scene.background = new THREE.Color(0x000022)
+
+/**
+ * renderer
+ */
+const renderer = new THREE.WebGLRenderer({
+	antialias: window.devicePixelRatio < 2,
+})
+document.body.appendChild(renderer.domElement)
+handleResize()
+
+/**
+ * OrbitControls
+ */
+// __controls__
+const controls = new OrbitControls(camera, renderer.domElement)
+controls.enableDamping = true
+controls.autoRotate = true
+controls.autoRotateSpeed = 10
+
 const listener = new THREE.AudioListener()
 camera.add(listener)
 
@@ -95,26 +114,6 @@ audioLoader.load('/musica.mp4', (buffer) => {
 
 const analyser = new THREE.AudioAnalyser(sound, precision)
 
-scene.background = new THREE.Color(0x000022)
-
-/**
- * renderer
- */
-const renderer = new THREE.WebGLRenderer({
-	antialias: window.devicePixelRatio < 2,
-})
-document.body.appendChild(renderer.domElement)
-handleResize()
-
-/**
- * OrbitControls
- */
-// __controls__
-const controls = new OrbitControls(camera, renderer.domElement)
-controls.enableDamping = true
-controls.autoRotate = true
-controls.autoRotateSpeed = 10
-
 /**
  * Three js Clock
  */
@@ -126,23 +125,6 @@ const clock = new THREE.Clock()
  */
 
 function tic() {
-	const avgFreq = analyser.getAverageFrequency()
-	const scaleFactor = 1 + (4 * avgFreq) / precision // Normalizza il valore tra 1 e 2
-
-	ground.scale.setScalar(scaleFactor)
-
-	const data = analyser.getFrequencyData()
-	// console.log(data)
-
-	groundMaterial.uniforms.uFrequencies.value = data
-
-	// for (let i = 0; i < positions.count; i += 3) {
-	// 	const freqIndex = Math.floor((i / positions.count) * data.length)
-	// 	const offset = (data[freqIndex] / precision) * 2 // Normalizziamo l’effetto
-	// 	// console.log(offset)
-	// 	positions.setY(i, offset) // Modifica la Z per creare un effetto ondulato
-	// }
-
 	// positions.needsUpdate = true
 	/**
 	 * tempo trascorso dal frame precedente
@@ -152,6 +134,16 @@ function tic() {
 	 * tempo totale trascorso dall'inizio
 	 */
 	// const time = clock.getElapsedTime()
+
+	const avgFreq = analyser.getAverageFrequency()
+	const scaleFactor = 1 + 2 * (avgFreq / precision)
+
+	ground.scale.setScalar(scaleFactor)
+
+	// console.log(avgFreq)
+	const data = analyser.getFrequencyData()
+	groundMaterial.uniforms.uFrequencies.value = data
+	// console.log(data)
 
 	// __controls_update__
 	controls.update(dt)

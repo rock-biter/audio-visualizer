@@ -1,11 +1,11 @@
-uniform float uFrequencies[512];
+uniform float uFrequencies[256];
 
 varying float vOffset;
 
 void main() {
 
   float d = length(position);
-  int i = int(mod(abs(d * 0.5), 512.));
+  int i = int(mod(d * 0.5, 256.));
 
   float f = uFrequencies[i];
   float offset = f / 512.;
