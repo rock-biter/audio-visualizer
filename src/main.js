@@ -99,17 +99,50 @@ camera.add(listener)
 const sound = new THREE.Audio(listener)
 const audioLoader = new THREE.AudioLoader()
 
-audioLoader.load('/musica.mp4', (buffer) => {
-	sound.setBuffer(buffer)
-	sound.setLoop(true)
-	sound.setVolume(0.5)
-	window.addEventListener(
-		'click',
-		() => {
-			sound.play()
-		},
-		{ once: true }
-	)
+// audioLoader.load('/musica.mp4', (buffer) => {
+// 	sound.setBuffer(buffer)
+// 	sound.setLoop(true)
+// 	sound.setVolume(0.5)
+// 	window.addEventListener(
+// 		'click',
+// 		() => {
+// 			sound.play()
+// 		},
+// 		{ once: true }
+// 	)
+// })
+
+const audioInput = document.getElementById('audioInput')
+const playInput = document.getElementById('play')
+
+audioInput.addEventListener('change', function (event) {
+	const file = event.target.files[0] // Prendi il file selezionato
+	if (!file) return
+
+	const reader = new FileReader()
+	reader.readAsArrayBuffer(file) // Legge il file come ArrayBuffer
+
+	reader.onload = function (e) {
+		const audioContext = THREE.AudioContext.getContext()
+		audioContext.decodeAudioData(e.target.result, function (buffer) {
+			// sound.pause()
+			sound.stop()
+			// playAudio(buffer) // Passiamo il buffer alla funzione che lo riproduce
+			sound.setBuffer(buffer)
+			sound.setLoop(true)
+			sound.setVolume(0.5)
+
+			playInput.style.display = ''
+			playInput.addEventListener(
+				'click',
+				() => {
+					sound.play()
+					playInput.style.display = 'none'
+				},
+				{ once: true }
+			)
+		})
+	}
 })
 
 const analyser = new THREE.AudioAnalyser(sound, precision)
